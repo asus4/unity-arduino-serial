@@ -143,15 +143,15 @@ namespace AppKit
         {
             _isRunning = false;
 
-            if (_thread != null && _thread.IsAlive)
-            {
-                // timeout 1sec
-                _thread.Join(1000);
-            }
             if (_serialPort != null && _serialPort.IsOpen)
             {
                 _serialPort.Close();
                 _serialPort.Dispose();
+            }
+            if (_thread != null && _thread.IsAlive)
+            {
+                // timeout 1sec
+                _thread.Join(1000);
             }
         }
 
@@ -178,9 +178,9 @@ namespace AppKit
                 {
                     // http://answers.unity3d.com/questions/1022086/reading-serial-data-in-unity-from-android-app.html
                     // ReadLine freeze on Unity5 && Windows!!
-                    byte b = (byte)_serialPort.ReadByte();
-                    while (b != 255 && _isRunning)
+                    while (_serialPort.BytesToRead > 0)
                     {
+                        byte b = (byte)_serialPort.ReadByte();
                         char c = (char)b;
                         if (c == '\n')
                         {
@@ -194,12 +194,11 @@ namespace AppKit
                         {
                             _data += c;
                         }
-                        b = (byte)_serialPort.ReadByte();
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning(e.Message);
+                    Debug.LogWarningFormat("{0}:{1}", e.GetType(), e.Message);
                 }
                 Thread.Sleep(1);
             }
